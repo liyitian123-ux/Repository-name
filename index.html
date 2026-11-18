@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111318">
+<title>路人模式</title>
+<style>
+:root{color-scheme:dark;--bg:#101216;--panel:#191d24;--line:#2a303a;--muted:#9aa4b2;--text:#edf1f6;--accent:#b9d8ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:720px;margin:auto;padding:26px 16px 48px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}.brand{font-size:22px;font-weight:750;letter-spacing:.3px}.tag{font-size:12px;color:var(--accent);border:1px solid #38506a;border-radius:99px;padding:6px 10px}
+h1{font-size:28px;margin:8px 0}.sub{color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 22px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;margin:14px 0}
+label{display:block;font-size:13px;color:#c2cad5;margin:0 0 9px}textarea{width:100%;min-height:138px;resize:vertical;border:1px solid var(--line);background:#11151b;color:var(--text);border-radius:12px;padding:13px;font:15px/1.6 inherit;outline:none}textarea:focus{border-color:#6488b1}
+.row{display:flex;gap:10px;flex-wrap:wrap}.chip{border:1px solid var(--line);border-radius:99px;padding:8px 12px;color:#cbd4df;background:#151920;font-size:13px}.chip.active{border-color:#6d8fb6;color:#e5f1ff;background:#1c2a39}
+button{border:0;border-radius:12px;padding:12px 15px;font-size:14px;font-weight:650;cursor:pointer}.primary{background:#d8e9ff;color:#101722}.secondary{background:#252d38;color:#e7edf5}.result{white-space:pre-wrap;line-height:1.65;background:#11151b;border:1px solid var(--line);border-radius:12px;padding:14px;min-height:72px}
+.small{font-size:12px;color:var(--muted);line-height:1.6}.status{min-height:18px;color:#a9c9ed;font-size:12px;margin-top:8px}
+footer{color:#778291;font-size:12px;line-height:1.6;margin-top:24px}
+</style>
+</head>
+<body><main>
+<div class="top"><div class="brand">路人模式</div><div class="tag">V1 · 草稿助手</div></div>
+<h1>群里说了什么？</h1>
+<p class="sub">把你想参与的几句聊天贴进来。先判断值不值得回，再给你一条不那么端着的回复建议。</p>
+<section class="card">
+<label for="chat">群聊内容（建议去掉真实姓名、电话等隐私）</label>
+<textarea id="chat" placeholder="例如：&#10;A：这网今天怎么这么卡&#10;B：我这边也一样"></textarea>
+<div style="height:14px"></div>
+<label>这次想怎么回</label>
+<div class="row" id="modes">
+<button class="chip active" data-mode="自然接话">自然接话</button>
+<button class="chip" data-mode="随便贫一句">随便贫一句</button>
+<button class="chip" data-mode="简短回应">简短回应</button>
+<button class="chip" data-mode="先判断要不要回">先判断要不要回</button>
+</div>
+<div style="height:16px"></div>
+<button class="primary" id="make">整理成 ChatGPT 请求</button>
+<p class="small">本页不读取 Telegram 群消息，也不会自动发送。它只把你手动提供的内容整理成提示词。</p>
+</section>
+<section class="card">
+<label for="prompt">复制下面内容，发给 ChatGPT 生成草稿</label>
+<div id="prompt" class="result">这里会显示整理好的请求。</div>
+<div style="height:12px"></div>
+<div class="row"><button class="secondary" id="copy">复制请求</button><button class="secondary" id="clear">清空</button></div>
+<div class="status" id="status" aria-live="polite"></div>
+</section>
+<footer>隐私提醒：不要粘贴验证码、账号凭据、电话号码或不必要的私人聊天记录。发送前请自己判断语境与内容。</footer>
+</main>
+<script>
+let mode="自然接话";
+document.querySelectorAll("#modes button").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("#modes button").forEach(x=>x.classList.remove("active"));b.classList.add("active");mode=b.dataset.mode}));
+const chat=document.getElementById("chat"),out=document.getElementById("prompt"),status=document.getElementById("status");
+document.getElementById("make").addEventListener("click",()=>{
+ const raw=chat.value.trim();
+ if(!raw){status.textContent="先贴几句群聊内容。";return}
+ out.textContent="请根据下面的群聊片段，帮我想一条自然的回复。像普通群友，别写成客服或 AI，不要解释你的思路。优先短句、口语化；不需要强行幽默，不要每句话都反问。如果这段内容不值得回复，请直接说“先不回”。不要编造我的个人经历。回复方式："+mode+"。只给我一条建议，必要时给一个更短的备选。\n\n群聊片段：\n"+raw;
+ status.textContent="请求已整理。复制后发给 ChatGPT。";
+});
+document.getElementById("copy").addEventListener("click",async()=>{
+ try{await navigator.clipboard.writeText(out.textContent);status.textContent="已复制。切换到 ChatGPT 粘贴即可。"}
+ catch(e){status.textContent="自动复制不可用，请长按上方文字手动复制。"}
+});
+document.getElementById("clear").addEventListener("click",()=>{chat.value="";out.textContent="这里会显示整理好的请求。";status.textContent="已清空。"});
+</script></body></html>
